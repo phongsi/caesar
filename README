@@ -1,0 +1,3 @@
+jquery Caesar
+Obfuscation against web crawlers and other bots
+Web crawlers will click and follow links. In order to prevent this, adding the attribute 'rel=nofollow' will tell some search engine crawlers to not click on a link.
