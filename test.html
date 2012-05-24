@@ -19,28 +19,26 @@
          var self, encoded, decoded = "";
          self = $(this);
          if(opts.encode) {
+           if(opts.beforeEncode) {
+             opts.beforeEncode(self);
+           }
            var e = convert(self.attr(opts.attr), opts.encodeLookup);
            self.attr(opts.attr, e);
+           if(opts.afterEncode) {
+             opts.afterEncode(self, e);
+           }
          }
          encoded = self.attr(opts.attr) || "";
-         decoded = convert(encoded, opts.charLookup);
-
-         // call hooks if present
-         var args = {decoded: decoded, encoded: encoded};
-         if(opts.onClick) {
-           self.bind('click', args, opts.onClick);
-         }
-         if(opts.beforeEncode) {
-           opts.beforeEncode.call(self, args.decoded, args.encoded);
-         }
-         if(opts.afterEncode) {
-           opts.afterEncode.call(self, args.decoded, args.encoded);
-         }
          if(opts.beforeDecode) {
-           opts.beforeDecode.call(self, args.decoded, args.encoded);
+           opts.beforeDecode(self, encoded);
          }
+         decoded = convert(encoded, opts.charLookup);
          if(opts.afterDecode) {
-           opts.afterDecode.call(self, args.decoded, args.encoded);
+           opts.afterDecode(self, encoded, decoded);
+         }
+
+         if(opts.onClick) {
+           self.bind('click', {decoded: decoded, encoded: encoded}, opts.onClick);
          }
        });
      };
@@ -63,6 +61,7 @@
        },
        encode: false,
        onClick: function(e) {
+         console.log(this);
          this.data("target") == "_blank" ? window.open(e.data.decoded, "_blank") : window.location = e.data.decoded;
        },
        beforeEncode: null,
@@ -76,22 +75,14 @@
    <script type="text/javascript">
      $(document).ready(function(){
        $(".test").caesar({
-         onClick: function(e){
-           console.log(e.data.decoded);
-           console.log(e.data.encoded);
-         },
-         attr: "data-foo",
-         encode: false,
-         beforeDecode: function(self, decoded, encoded){
-           self.append(encoded);
-         }
+         attr: "data-foo"
        });
        
      });
    </script>
   </head>
   <body>
-    <div class="test" data-foo="abcdefghijkl">abcdefghijkl</span>
-    <div class="test" data-foo="1234--fhtge2">1234--fhtge2</span>
+    <div class="test" data-foo="abcdefghijkl">abcdefghijkl</div>
+    <div class="test" data-foo="1234--fhtge2">1234--fhtge2</div>
     </body>
 </html>

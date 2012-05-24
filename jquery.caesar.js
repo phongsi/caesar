@@ -15,28 +15,26 @@
       var self, encoded, decoded = "";
       self = $(this);
       if(opts.encode) {
+        if(opts.beforeEncode) {
+          opts.beforeEncode(self);
+        }
         var e = convert(self.attr(opts.attr), opts.encodeLookup);
         self.attr(opts.attr, e);
+        if(opts.afterEncode) {
+          opts.afterEncode(self, e);
+        }
       }
       encoded = self.attr(opts.attr) || "";
-      decoded = convert(encoded, opts.charLookup);
-
-      // call hooks if present
-      var args = {decoded: decoded, encoded: encoded};
-      if(opts.onClick) {
-        self.bind('click', args, opts.onClick);
-      }
-      if(opts.beforeEncode) {
-        opts.beforeEncode.call(self, args);
-      }
-      if(opts.afterEncode) {
-        opts.afterEncode.call(self, args);
-      }
       if(opts.beforeDecode) {
-        opts.beforeDecode.call(self, args);
+        opts.beforeDecode(self, encoded);
       }
+      decoded = convert(encoded, opts.charLookup);
       if(opts.afterDecode) {
-        opts.afterDecode.call(self, args);
+        opts.afterDecode(self, encoded, decoded);
+      }
+
+      if(opts.onClick) {
+        self.bind('click', {decoded: decoded, encoded: encoded}, opts.onClick);
       }
     });
   };
