@@ -1,32 +1,52 @@
 (function( $ ) {
   $.fn.caesar = function(options) {
     var opts = $.extend($.fn.caesar.defaults, options);
-    var encodeLookup = {}
-    for(prop in opts.charLookup){
-      encodeLookup[opts.charLookup[prop]] = prop;
+
+    if(opts.encode){
+      // create reverse lookup table
+      var encodeLookup = {}
+      for(prop in opts.charLookup){
+        encodeLookup[opts.charLookup[prop]] = prop;
+      }
+      opts = $.extend(opts, {encodeLookup : encodeLookup});
     }
+
     return this.each(function() {
       var self, encoded, decoded = "";
       self = $(this);
-      if(opts.encode){
-        e = encode(self.attr(opts.attr));
+      if(opts.encode) {
+        var e = convert(self.attr(opts.attr), opts.encodeLookup);
         self.attr(opts.attr, e);
       }
       encoded = self.attr(opts.attr) || "";
-      decoded = encode(encoded, opts.charLookup);
-      self.bind('click', {
-        decoded: decoded, 
-        encoded: encoded
-      }, opts.onClick);
+      decoded = convert(encoded, opts.charLookup);
+
+      // call hooks if present
+      var args = {decoded: decoded, encoded: encoded};
+      if(opts.onClick) {
+        self.bind('click', args, opts.onClick);
+      }
+      if(opts.beforeEncode) {
+        opts.beforeEncode.call(self, args);
+      }
+      if(opts.afterEncode) {
+        opts.afterEncode.call(self, args);
+      }
+      if(opts.beforeDecode) {
+        opts.beforeDecode.call(self, args);
+      }
+      if(opts.afterDecode) {
+        opts.afterDecode.call(self, args);
+      }
     });
   };
-  
-  var encode = function(anyString,lookupTable) {
-    var encodeStr = '';
-    for(i=0;i<anyString.length;i++){
-      encodeStr+=lookupTable[anyString[i]] || anyString[i];
+
+  var convert = function(s, lookupTable) {
+    var convertedString = "";
+    for(i = 0; i < s.length; i++){
+      convertedString += lookupTable[s[i]] || s[i];
     }
-    return encodeStr;
+    return convertedString;
   }
 
   $.fn.caesar.defaults = {
@@ -40,7 +60,11 @@
     encode: false,
     onClick: function(e) {
       this.data("target") == "_blank" ? window.open(e.data.decoded, "_blank") : window.location = e.data.decoded;
-    }
+    },
+    beforeEncode: null,
+    afterEncode: null,
+    beforeDecode: null,
+    afterDecode: null
   }
 
 })( jQuery );
